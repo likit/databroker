@@ -1,0 +1,27 @@
+version: "3.4"
+services:
+  web:
+    build: .
+    depends_on:
+      - pg
+    ports:
+      - "5000:5000"
+      - "80:5000"
+    environment:
+      - FLASK_APP
+      - FLASK_ENV
+      - POSTGRES_PASSWORD
+      - SECRET_KEY
+    volumes:
+      - ./service:/datatube/service
+  pg:
+    image: postgres:11
+    environment:
+      - POSTGRES_PASSWORD
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5443:5432"
+
+volumes:
+  pgdata:
