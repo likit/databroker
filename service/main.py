@@ -1,4 +1,6 @@
 from flask import Flask
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
@@ -8,6 +10,7 @@ FLASK_ENV = os.environ.get('FLASK_ENV')
 
 db = SQLAlchemy()
 ma = Migrate()
+admin = Admin()
 
 
 def create_app(config_object):
@@ -18,8 +21,14 @@ def create_app(config_object):
 app = create_app(SETTINGS.get(FLASK_ENV, 'default'))
 db.init_app(app)
 ma.init_app(app, db)
+admin.init_app(app)
 
 from . import models
+
+admin.add_view(ModelView(models.OrgClient, db.session))
+admin.add_view(ModelView(models.OrgSector, db.session))
+admin.add_view(ModelView(models.OrgPerson, db.session))
+
 
 @app.route('/')
 def hello():
