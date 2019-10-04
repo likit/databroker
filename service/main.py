@@ -28,6 +28,7 @@ from . import models
 admin.add_view(ModelView(models.OrgClient, db.session))
 admin.add_view(ModelView(models.OrgSector, db.session))
 admin.add_view(ModelView(models.OrgPerson, db.session))
+admin.add_view(ModelView(models.OrgTeam, db.session))
 
 
 @app.route('/')

@@ -1,4 +1,5 @@
 from .main import db
+from sqlalchemy.sql import func
 
 
 class OrgClient(db.Model):
@@ -7,6 +8,8 @@ class OrgClient(db.Model):
     sector_id = db.Column(db.Integer, db.ForeignKey('org_sector.id'))
     sector = db.relationship('OrgSector', backref=db.backref('organizations',
                                 lazy='dynamic', order_by='OrgClient.name'))
+
+    teams = db.relationship('OrgTeam', secondary='org_client_team')
 
     def __str__(self):
         return u'{}:{}'.format(self.id, self.name)
@@ -32,3 +35,24 @@ class OrgPerson(db.Model):
 
     def __str__(self):
         return u'{}:{}'.format(self.id, self.email)
+
+
+class OrgTeam(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.String(), nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    active = db.Column(db.Boolean(), default=False)
+    orgs = db.relationship('OrgClient', secondary='org_client_team')
+
+    def __str__(self):
+        return u'{}:{}'.format(self.id, self.name)
+
+class OrgClientTeam(db.Model):
+    __tablename__ = 'org_client_team'
+    org_id = db.Column(db.Integer, db.ForeignKey('org_client.id'),
+                        primary_key=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('org_team.id'),
+                        primary_key=True)
+    org = db.relationship('OrgClient', backref=db.backref('team_assoc'))
+    team = db.relationship('OrgTeam', backref=db.backref('org_assoc'))
