@@ -83,3 +83,25 @@ class DataSchema(db.Model):
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))
     dataset = db.relationship('Dataset',
                                 backref=db.backref('schemas', lazy='dynamic'))
+
+
+class DataRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    created_at = db.Column(db.DateTime(timezone=True),
+                            server_default=func.now())
+    creator_id = db.Column(db.Integer,
+                            db.ForeignKey('org_person.id', ondelete='CASCADE'))
+    creator = db.relationship('OrgPerson', backref=db.backref('requests'))
+    dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))
+    dataset = db.relationship('Dataset',
+                                backref=db.backref('requests', lazy='dynamic'))
+    destination_id = db.Column(db.Integer, db.ForeignKey('destination.id'))
+    destination = db.relationship('Destination',
+                                    backref=db.backref('request', uselist=False))
+
+
+class Destination(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    dest_type = db.Column(db.String(255), nullable=False)
+    # Could be a Google Sheet ID, an API endpoint, etc.
+    uri = db.Column(db.String(255), nullable=False)
