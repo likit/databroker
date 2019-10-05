@@ -1,4 +1,4 @@
-from .main import db
+from .main import db, marshmallow
 from sqlalchemy.sql import func
 
 
@@ -105,3 +105,8 @@ class Destination(db.Model):
     dest_type = db.Column(db.String(255), nullable=False)
     # Could be a Google Sheet ID, an API endpoint, etc.
     uri = db.Column(db.String(255), nullable=False)
+
+
+class OrgClientSchema(marshmallow.ModelSchema):
+    class Meta:
+        model = OrgClient
