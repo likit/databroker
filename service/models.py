@@ -1,6 +1,6 @@
-from .main import db, marshmallow
 from sqlalchemy.sql import func
-from marshmallow import fields, Schema
+from .main import db, marsh
+import marshmallow as mm
 
 
 class OrgClient(db.Model):
@@ -108,54 +108,51 @@ class Destination(db.Model):
     uri = db.Column(db.String(255), nullable=False)
 
 
-class OrgClientSchema(Schema):
-    id = fields.Integer(dump_only=True)
-    name = fields.String(required=True)
-    url = marshmallow.URLFor('api.orgclientresource',
-                                id='<id>', _external=True)
+class OrgClientSchema(mm.Schema):
+    id = mm.fields.Integer(dump_only=True)
+    name = mm.fields.String(required=True)
+    url = marsh.URLFor('api.orgclientresource', id='<id>', _external=True)
 
-    sector = fields.Nested('OrgSectorSchema', many=False)
-    teams = fields.Nested('OrgTeamSchema', many=True, exclude=('orgs',))
-
-
-class OrgSectorSchema(Schema):
-    id = fields.Integer(dump_only=True)
-    sector = fields.String(required=True)
-    url = marshmallow.URLFor('api.orgsectorresource',
-                                id='<id>', _external=True)
+    sector = mm.fields.Nested('OrgSectorSchema', many=False)
+    teams = mm.fields.Nested('OrgTeamSchema', many=True, exclude=('orgs',))
 
 
-class OrgPersonSchema(Schema):
-    id = fields.Integer(dump_only=True)
-    org = fields.Nested('OrgClientSchema', many=False,
+class OrgSectorSchema(mm.Schema):
+    id = mm.fields.Integer(dump_only=True)
+    sector = mm.fields.String(required=True)
+    url = marsh.URLFor('api.orgsectorresource', id='<id>', _external=True)
+
+
+class OrgPersonSchema(mm.Schema):
+    id = mm.fields.Integer(dump_only=True)
+    org = mm.fields.Nested('OrgClientSchema', many=False,
                         only=['id', 'name', 'url'])
-    firstname_th = fields.String(required=False)
-    lastname_th = fields.String(required=False)
-    firstname_en = fields.String(required=True)
-    lastname_en = fields.String(required=True)
-    email = fields.Email(required=True)
-    url = marshmallow.URLFor('api.orgpersonresource',
-                                id='<id>', _external=True)
+    firstname_th = mm.fields.String(required=False)
+    lastname_th = mm.fields.String(required=False)
+    firstname_en = mm.fields.String(required=True)
+    lastname_en = mm.fields.String(required=True)
+    email = mm.fields.Email(required=True)
+    url = marsh.URLFor('api.orgpersonresource', id='<id>', _external=True)
 
 
-class OrgTeamSchema(Schema):
-    id = fields.Integer(dump_only=True)
-    name = fields.String(required=True)
-    description = fields.String(required=False)
-    active = fields.Boolean(dump_only=True)
-    created_at = fields.AwareDateTime(dump_only=True)
-    orgs = fields.Nested('OrgClientSchema', many=True)
-    url = marshmallow.URLFor('api.orgteamresource',
-                                id='<id>', _external=True)
+class OrgTeamSchema(mm.Schema):
+    id = mm.fields.Integer(dump_only=True)
+    name = mm.fields.String(required=True, validate=mm.validate.Length(8))
+    description = mm.fields.String(required=False)
+    active = mm.fields.Boolean(dump_only=True)
+    created_at = mm.fields.AwareDateTime(dump_only=True)
+    orgs = mm.fields.Nested('OrgClientSchema', many=True)
+    url = marsh.URLFor('api.orgteamresource', id='<id>', _external=True)
 
 
-class DatasetSchema(Schema):
-    id = fields.Integer(dump_only=True)
-    name = fields.String(required=True)
-    description = fields.String(required=False)
-    active = fields.Boolean(dump_only=True)
-    created_at = fields.AwareDateTime(dump_only=True)
-    creator = fields.Nested('OrgClientSchema', many=False)
-    data_fields = fields.Dict(required=True)
-    url = marshmallow.URLFor('api.datasetresource',
-                                id='<id>', _external=True)
+class DatasetSchema(mm.Schema):
+    id = mm.fields.Integer(dump_only=True)
+    name = mm.fields.String(required=True, validate=mm.validate.Length(8))
+    description = mm.fields.String(required=False)
+    active = mm.fields.Boolean(dump_only=True)
+    created_at = mm.fields.AwareDateTime(dump_only=True)
+    creator = mm.fields.Nested('OrgPersonSchema', many=False,
+                                only=('id', 'email', 'url'))
+    email = mm.fields.Email(required=True)
+    fields = mm.fields.Dict(required=True)
+    url = marsh.URLFor('api.datasetresource', id='<id>', _external=True)

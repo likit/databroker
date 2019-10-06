@@ -12,7 +12,7 @@ FLASK_ENV = os.environ.get('FLASK_ENV')
 db = SQLAlchemy()
 migrate = Migrate()
 admin = Admin()
-marshmallow = Marshmallow()
+marsh = Marshmallow()
 
 
 def create_app(config_object):
@@ -24,7 +24,7 @@ app = create_app(SETTINGS.get(FLASK_ENV, 'default'))
 db.init_app(app)
 migrate.init_app(app, db)
 admin.init_app(app)
-marshmallow.init_app(app)
+marsh.init_app(app)
 
 from . import models
 

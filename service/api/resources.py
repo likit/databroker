@@ -1,5 +1,7 @@
 from flask_restful import Resource
+from service.main import db
 from flask import request, jsonify
+from sqlalchemy.exc import SQLAlchemyError
 from service.models import (OrgClient, OrgClientSchema,
                                 OrgSector, OrgSectorSchema,
                                 OrgPerson, OrgPersonSchema,
@@ -80,5 +82,26 @@ class DatasetListResource(Resource):
         dataset_dict = request.get_json()
         if not dataset_dict:
             return {'message': 'No input data provided.'}, 400
-        else:
-            return jsonify(dataset_dict)
+        existing_dataset = Dataset.query.filter_by(name=dataset_dict['name']).first()
+        if existing_dataset:
+            return {'message': 'Dataset named **{}** already exists.'\
+                        .format(dataset_dict['name'])}, 400
+        user = OrgPerson.query.filter_by(email=dataset_dict['email']).first()
+        if not user:
+            return {'message': '{} not found.'.format(dataset_dict['email'])}
+        errors = dataset_schema.validate(dataset_dict)
+        if errors:
+            return errors, 400
+        dataset = Dataset(name=dataset_dict['name'],
+                            fields=dataset_dict['fields'],
+                            creator=user)
+        if 'description' in dataset_dict:
+            dataset.description = dataset_dict['description']
+        try:
+            db.session.add(dataset)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            response = {'error': str(e)}
+            return response, 400
+        return dataset_schema.dump(dataset), 201
