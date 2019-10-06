@@ -1,5 +1,6 @@
 from .main import db, marshmallow
 from sqlalchemy.sql import func
+from marshmallow import fields, Schema
 
 
 class OrgClient(db.Model):
@@ -26,9 +27,9 @@ class OrgPerson(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     firstname_th = db.Column(db.String(255))
     lastname_th = db.Column(db.String(255))
-    firstname_en = db.Column(db.String(255))
-    lastname_en = db.Column(db.String(255))
-    email = db.Column(db.String(128))
+    firstname_en = db.Column(db.String(255), nullable=False)
+    lastname_en = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(128), nullable=False)
     org_id = db.Column(db.Integer, db.ForeignKey('org_client.id'))
     organization = db.relationship('OrgClient',
                         backref=db.backref('persons', lazy='dynamic'))
@@ -107,6 +108,30 @@ class Destination(db.Model):
     uri = db.Column(db.String(255), nullable=False)
 
 
-class OrgClientSchema(marshmallow.ModelSchema):
-    class Meta:
-        model = OrgClient
+class OrgClientSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    name = fields.String(required=True)
+    url = marshmallow.URLFor('api.orgclientresource',
+                                id='<id>', _external=True)
+
+    sector = fields.Nested('OrgSectorSchema', many=False)
+
+
+class OrgSectorSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    sector = fields.String(required=True)
+    url = marshmallow.URLFor('api.orgsectorresource',
+                                id='<id>', _external=True)
+
+
+class OrgPersonSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    org = fields.Nested('OrgClientSchema', many=False,
+                        only=['id', 'name', 'url'])
+    firstname_th = fields.String(required=False)
+    lastname_th = fields.String(required=False)
+    firstname_en = fields.String(required=True)
+    lastname_en = fields.String(required=True)
+    email = fields.String(required=True)
+    url = marshmallow.URLFor('api.orgpersonresource',
+                                id='<id>', _external=True)

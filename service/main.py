@@ -33,11 +33,14 @@ admin.add_view(ModelView(models.OrgSector, db.session))
 admin.add_view(ModelView(models.OrgPerson, db.session))
 admin.add_view(ModelView(models.OrgTeam, db.session))
 
-from .api.resources import OrgClientResource
+from .api.resources import (OrgClientResource, OrgSectorResource,
+                            OrgPersonResource)
 from .api import api_bp
 
 api = Api(api_bp)
 api.add_resource(OrgClientResource, '/clients')
+api.add_resource(OrgSectorResource, '/sectors')
+api.add_resource(OrgPersonResource, '/persons')
 
 app.register_blueprint(api_bp, url_prefix='/api')
 
