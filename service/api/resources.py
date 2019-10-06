@@ -6,7 +6,9 @@ from service.models import (OrgClient, OrgClientSchema,
                                 OrgSector, OrgSectorSchema,
                                 OrgPerson, OrgPersonSchema,
                                 OrgTeam, OrgTeamSchema,
-                                Dataset, DatasetSchema)
+                                Dataset, DatasetSchema,
+                                DataSchemaSchema, DataSchema
+                                )
 
 org_client_schema = OrgClientSchema()
 org_clients_schema = OrgClientSchema(many=True)
@@ -86,12 +88,12 @@ class DatasetListResource(Resource):
         if existing_dataset:
             return {'message': 'Dataset named **{}** already exists.'\
                         .format(dataset_dict['name'])}, 400
-        user = OrgPerson.query.filter_by(email=dataset_dict['email']).first()
-        if not user:
-            return {'message': '{} not found.'.format(dataset_dict['email'])}
         errors = dataset_schema.validate(dataset_dict)
         if errors:
             return errors, 400
+        user = OrgPerson.query.filter_by(email=dataset_dict['email']).first()
+        if not user:
+            return {'message': '{} not found.'.format(dataset_dict['email'])}
         dataset = Dataset(name=dataset_dict['name'],
                             fields=dataset_dict['fields'],
                             creator=user)
@@ -105,3 +107,50 @@ class DatasetListResource(Resource):
             response = {'error': str(e)}
             return response, 400
         return dataset_schema.dump(dataset), 201
+
+
+data_schema = DataSchemaSchema()
+data_schemas = DataSchemaSchema(many=True)
+class DataSchemaResource(Resource):
+    def get(self, id):
+        schema = DataSchema.query.get_or_404(id)
+        return data_schema.dump(schema)
+
+
+class DataSchemaListResource(Resource):
+    def get(self):
+        schema = DataSchema.query.all()
+        return data_schemas.dump(schema)
+
+    def post(self):
+        schema_dict = request.get_json()
+        if not schema_dict:
+            return {'error': 'No input data provided.'}
+        errors = data_schema.validate(schema_dict)
+        if errors:
+            return errors, 400
+        user = OrgPerson.query.filter_by(email=schema_dict['email']).first()
+        if not user:
+            return {'message': '{} not found.'.format(schema_dict['email'])}
+
+        dataset_id = schema_dict['dataset_id']
+        dataset = Dataset.query.get_or_404(dataset_id)
+        if not dataset:
+            return {'error': 'Dataset with ID={} not found.'.format(dataset_id)}
+        else:
+            matched_fields = [(k,v) for k,v in schema_dict['schema'].items()
+                                    if v in dataset.fields]
+            if not matched_fields:
+                return {'error': 'Schema does not match the dataset.'}
+
+            schema = DataSchema(creator=user,
+                                dataset=dataset,
+                                schema=dict(matched_fields))
+            try:
+                db.session.add(schema)
+                db.session.commit()
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                return {'error': str(e)}
+
+        return jsonify(data_schema.dump(schema))

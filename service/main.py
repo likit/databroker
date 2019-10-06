@@ -37,7 +37,8 @@ from .api.resources import (OrgClientResource, OrgClientListResource,
                             OrgSectorResource, OrgSectorListResource,
                             OrgPersonResource, OrgPersonListResource,
                             OrgTeamResource, OrgTeamListResource,
-                            DatasetResource, DatasetListResource)
+                            DatasetResource, DatasetListResource,
+                            DataSchemaResource, DataSchemaListResource)
 from .api import api_bp
 
 api = Api(api_bp)
@@ -51,6 +52,8 @@ api.add_resource(OrgTeamListResource, '/teams')
 api.add_resource(OrgTeamResource, '/teams/<int:id>')
 api.add_resource(DatasetListResource, '/datasets')
 api.add_resource(DatasetResource, '/datasets/<int:id>')
+api.add_resource(DataSchemaListResource, '/schemas')
+api.add_resource(DataSchemaResource, '/schemas/<int:id>')
 
 app.register_blueprint(api_bp, url_prefix='/api')
 

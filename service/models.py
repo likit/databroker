@@ -156,3 +156,17 @@ class DatasetSchema(mm.Schema):
     email = mm.fields.Email(required=True)
     fields = mm.fields.Dict(required=True)
     url = marsh.URLFor('api.datasetresource', id='<id>', _external=True)
+
+
+class DataSchemaSchema(mm.Schema):
+    id = mm.fields.Integer(dump_only=True)
+    created_at = mm.fields.AwareDateTime(dump_only=True)
+    updated_at = mm.fields.AwareDateTime(dump_only=True)
+    schema = mm.fields.Dict(required=True)
+    email = mm.fields.Email(required=True)
+    dataset_id = mm.fields.Integer(required=True)
+    creator = mm.fields.Nested('OrgPersonSchema', many=False,
+                                only=('id', 'email', 'url'))
+    dataset = mm.fields.Nested('DatasetSchema', many=False,
+                                only=('id', 'url'))
+    url = marsh.URLFor('api.dataschemaresource', id='<id>', _external=True)
