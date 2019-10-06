@@ -33,14 +33,24 @@ admin.add_view(ModelView(models.OrgSector, db.session))
 admin.add_view(ModelView(models.OrgPerson, db.session))
 admin.add_view(ModelView(models.OrgTeam, db.session))
 
-from .api.resources import (OrgClientResource, OrgSectorResource,
-                            OrgPersonResource)
+from .api.resources import (OrgClientResource, OrgClientListResource,
+                            OrgSectorResource, OrgSectorListResource,
+                            OrgPersonResource, OrgPersonListResource,
+                            OrgTeamResource, OrgTeamListResource,
+                            DatasetResource, DatasetListResource)
 from .api import api_bp
 
 api = Api(api_bp)
-api.add_resource(OrgClientResource, '/clients')
-api.add_resource(OrgSectorResource, '/sectors')
-api.add_resource(OrgPersonResource, '/persons')
+api.add_resource(OrgClientListResource, '/clients')
+api.add_resource(OrgClientResource, '/clients/<int:id>')
+api.add_resource(OrgSectorListResource, '/sectors')
+api.add_resource(OrgSectorResource, '/sectors/<int:id>')
+api.add_resource(OrgPersonListResource, '/persons')
+api.add_resource(OrgPersonResource, '/persons/<int:id>')
+api.add_resource(OrgTeamListResource, '/teams')
+api.add_resource(OrgTeamResource, '/teams/<int:id>')
+api.add_resource(DatasetListResource, '/datasets')
+api.add_resource(DatasetResource, '/datasets/<int:id>')
 
 app.register_blueprint(api_bp, url_prefix='/api')
 
