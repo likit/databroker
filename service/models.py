@@ -115,6 +115,7 @@ class OrgClientSchema(Schema):
                                 id='<id>', _external=True)
 
     sector = fields.Nested('OrgSectorSchema', many=False)
+    teams = fields.Nested('OrgTeamSchema', many=True, exclude=('orgs',))
 
 
 class OrgSectorSchema(Schema):
@@ -132,6 +133,29 @@ class OrgPersonSchema(Schema):
     lastname_th = fields.String(required=False)
     firstname_en = fields.String(required=True)
     lastname_en = fields.String(required=True)
-    email = fields.String(required=True)
+    email = fields.Email(required=True)
     url = marshmallow.URLFor('api.orgpersonresource',
+                                id='<id>', _external=True)
+
+
+class OrgTeamSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    name = fields.String(required=True)
+    description = fields.String(required=False)
+    active = fields.Boolean(dump_only=True)
+    created_at = fields.AwareDateTime(dump_only=True)
+    orgs = fields.Nested('OrgClientSchema', many=True)
+    url = marshmallow.URLFor('api.orgteamresource',
+                                id='<id>', _external=True)
+
+
+class DatasetSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    name = fields.String(required=True)
+    description = fields.String(required=False)
+    active = fields.Boolean(dump_only=True)
+    created_at = fields.AwareDateTime(dump_only=True)
+    creator = fields.Nested('OrgClientSchema', many=False)
+    data_fields = fields.Dict(required=True)
+    url = marshmallow.URLFor('api.datasetresource',
                                 id='<id>', _external=True)
