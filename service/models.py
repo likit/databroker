@@ -164,7 +164,7 @@ class DataSchemaSchema(mm.Schema):
     updated_at = mm.fields.AwareDateTime(dump_only=True)
     schema = mm.fields.Dict(required=True)
     email = mm.fields.Email(required=True)
-    dataset_id = mm.fields.Integer(required=True)
+    dataset_id = mm.fields.Integer(required=True, load_only=True)
     creator = mm.fields.Nested('OrgPersonSchema', many=False,
                                 only=('id', 'email', 'url'))
     dataset = mm.fields.Nested('DatasetSchema', many=False,
