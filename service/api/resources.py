@@ -1,4 +1,5 @@
 from flask_restful import Resource
+from flask import request, jsonify
 from service.models import (OrgClient, OrgClientSchema,
                                 OrgSector, OrgSectorSchema,
                                 OrgPerson, OrgPersonSchema,
@@ -74,3 +75,10 @@ class DatasetListResource(Resource):
     def get(self):
         datasets = Dataset.query.all()
         return datasets_schema.dump(datasets)
+
+    def post(self):
+        dataset_dict = request.get_json()
+        if not dataset_dict:
+            return {'message': 'No input data provided.'}, 400
+        else:
+            return jsonify(dataset_dict)
