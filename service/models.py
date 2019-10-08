@@ -96,16 +96,8 @@ class DataRequest(db.Model):
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'))
     dataset = db.relationship('Dataset',
                                 backref=db.backref('requests', lazy='dynamic'))
-    destination_id = db.Column(db.Integer, db.ForeignKey('destination.id'))
-    destination = db.relationship('Destination',
-                                    backref=db.backref('request', uselist=False))
-
-
-class Destination(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    dest_type = db.Column(db.String(255), nullable=False)
-    # Could be a Google Sheet ID, an API endpoint, etc.
-    uri = db.Column(db.String(255), nullable=False)
+    endpoint = db.Column(db.String(255), nullable=False)
+    dtype = db.Column(db.String(32), nullable=False)
 
 
 class OrgClientSchema(mm.Schema):
@@ -170,3 +162,18 @@ class DataSchemaSchema(mm.Schema):
     dataset = mm.fields.Nested('DatasetSchema', many=False,
                                 only=('id', 'url'))
     url = marsh.URLFor('api.dataschemaresource', id='<id>', _external=True)
+
+
+class DataRequestSchema(mm.Schema):
+    id = mm.fields.Integer(dump_only=True)
+    created_at = mm.fields.AwareDateTime(dump_only=True)
+    creator = mm.fields.Nested('OrgPersonSchema', many=False,
+                                only=('id', 'url', 'email'))
+    endpoint = mm.fields.String(required=True)
+    dtype = mm.fields.String(required=True,
+                                validate=mm.validate.OneOf(['sheet', 'api']))
+    dataset = mm.fields.Nested('DatasetSchema',
+                                many=False, only=('id', 'url'))
+    dataset_id = mm.fields.Integer(required=True, load_only=True)
+    email = mm.fields.Email(required=True, load_only=True)
+    url = marsh.URLFor('api.datarequestresource', id='<id>', _external=True)

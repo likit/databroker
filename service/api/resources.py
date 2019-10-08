@@ -7,7 +7,8 @@ from service.models import (OrgClient, OrgClientSchema,
                                 OrgPerson, OrgPersonSchema,
                                 OrgTeam, OrgTeamSchema,
                                 Dataset, DatasetSchema,
-                                DataSchemaSchema, DataSchema
+                                DataSchemaSchema, DataSchema,
+                                DataRequestSchema, DataRequest,
                                 )
 
 org_client_schema = OrgClientSchema()
@@ -154,3 +155,53 @@ class DataSchemaListResource(Resource):
                 return {'error': str(e)}
 
         return jsonify(data_schema.dump(schema))
+
+
+request_schema = DataRequestSchema()
+requests_schema = DataRequestSchema(many=True)
+class DataRequestResource(Resource):
+    def get(self, id):
+        request = DataRequest.query.get_or_404(id)
+        return requests_schema.dump(request)
+
+
+class DataRequestListResource(Resource):
+    def get(self):
+        requests = DataRequest.query.all()
+        return requests_schema.dump(requests)
+
+
+    def post(self):
+        request_dict = request.get_json()
+        if not request_dict:
+            return {'message': 'No input data provided.'}, 400
+
+        errors = request_schema.validate(request_dict)
+        if errors:
+            return errors, 400
+
+        email = request_dict.get('email')
+        if email:
+            user = OrgPerson.query.filter_by(email=email).first()
+            if not user:
+                return {'error': '{} not found.'}, 400
+        else:
+            return {'error': 'No email is provided.'}, 400
+
+        dataset_id = request_dict.get('dataset_id')
+        if dataset_id:
+            dataset = Dataset.query.get(dataset_id)
+            if not dataset:
+                return {'error': 'Dataset with ID={} not found.'\
+                            .format(dataset_id)}
+            req = DataRequest(creator=user,
+                                endpoint=request_dict['endpoint'],
+                                dtype=request_dict['dtype'],
+                                dataset=dataset)
+            try:
+                db.session.add(req)
+                db.session.commit()
+            except SQLAlchemyError as e:
+                return {'error': str(e)}, 400
+
+        return request_schema.dump(req)
